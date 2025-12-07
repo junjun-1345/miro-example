@@ -1,0 +1,28 @@
+# テックブログ用メモ（個人用）
+notes.md
+
+# Go
+server/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Flutter
+client/.dart_tool/
+client/.packages
+client/build/
+client/.flutter-plugins
+client/.flutter-plugins-dependencies
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
