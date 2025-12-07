@@ -22,8 +22,7 @@ mixin _$Shape {
  double get y;/// 幅
  double get width;/// 高さ
  double get height;/// 塗りつぶし色（ARGB形式）
- int get color;/// テキスト（type=textの場合のみ使用）
- String? get text;
+ int get color;
 /// Create a copy of Shape
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -36,16 +35,16 @@ $ShapeCopyWith<Shape> get copyWith => _$ShapeCopyWithImpl<Shape>(this as Shape, 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Shape&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.color, color) || other.color == color)&&(identical(other.text, text) || other.text == text));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Shape&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.color, color) || other.color == color));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,x,y,width,height,color,text);
+int get hashCode => Object.hash(runtimeType,id,type,x,y,width,height,color);
 
 @override
 String toString() {
-  return 'Shape(id: $id, type: $type, x: $x, y: $y, width: $width, height: $height, color: $color, text: $text)';
+  return 'Shape(id: $id, type: $type, x: $x, y: $y, width: $width, height: $height, color: $color)';
 }
 
 
@@ -56,7 +55,7 @@ abstract mixin class $ShapeCopyWith<$Res>  {
   factory $ShapeCopyWith(Shape value, $Res Function(Shape) _then) = _$ShapeCopyWithImpl;
 @useResult
 $Res call({
- String id, ShapeType type, double x, double y, double width, double height, int color, String? text
+ String id, ShapeType type, double x, double y, double width, double height, int color
 });
 
 
@@ -73,7 +72,7 @@ class _$ShapeCopyWithImpl<$Res>
 
 /// Create a copy of Shape
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? x = null,Object? y = null,Object? width = null,Object? height = null,Object? color = null,Object? text = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = null,Object? x = null,Object? y = null,Object? width = null,Object? height = null,Object? color = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -82,8 +81,7 @@ as double,y: null == y ? _self.y : y // ignore: cast_nullable_to_non_nullable
 as double,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
 as double,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
 as double,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
-as int,text: freezed == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
-as String?,
+as int,
   ));
 }
 
@@ -165,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  ShapeType type,  double x,  double y,  double width,  double height,  int color,  String? text)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  ShapeType type,  double x,  double y,  double width,  double height,  int color)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Shape() when $default != null:
-return $default(_that.id,_that.type,_that.x,_that.y,_that.width,_that.height,_that.color,_that.text);case _:
+return $default(_that.id,_that.type,_that.x,_that.y,_that.width,_that.height,_that.color);case _:
   return orElse();
 
 }
@@ -186,10 +184,10 @@ return $default(_that.id,_that.type,_that.x,_that.y,_that.width,_that.height,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  ShapeType type,  double x,  double y,  double width,  double height,  int color,  String? text)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  ShapeType type,  double x,  double y,  double width,  double height,  int color)  $default,) {final _that = this;
 switch (_that) {
 case _Shape():
-return $default(_that.id,_that.type,_that.x,_that.y,_that.width,_that.height,_that.color,_that.text);}
+return $default(_that.id,_that.type,_that.x,_that.y,_that.width,_that.height,_that.color);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -203,10 +201,10 @@ return $default(_that.id,_that.type,_that.x,_that.y,_that.width,_that.height,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  ShapeType type,  double x,  double y,  double width,  double height,  int color,  String? text)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  ShapeType type,  double x,  double y,  double width,  double height,  int color)?  $default,) {final _that = this;
 switch (_that) {
 case _Shape() when $default != null:
-return $default(_that.id,_that.type,_that.x,_that.y,_that.width,_that.height,_that.color,_that.text);case _:
+return $default(_that.id,_that.type,_that.x,_that.y,_that.width,_that.height,_that.color);case _:
   return null;
 
 }
@@ -218,7 +216,7 @@ return $default(_that.id,_that.type,_that.x,_that.y,_that.width,_that.height,_th
 @JsonSerializable()
 
 class _Shape implements Shape {
-  const _Shape({required this.id, required this.type, required this.x, required this.y, required this.width, required this.height, required this.color, this.text});
+  const _Shape({required this.id, required this.type, required this.x, required this.y, required this.width, required this.height, required this.color});
   factory _Shape.fromJson(Map<String, dynamic> json) => _$ShapeFromJson(json);
 
 /// 図形の一意識別子
@@ -235,8 +233,6 @@ class _Shape implements Shape {
 @override final  double height;
 /// 塗りつぶし色（ARGB形式）
 @override final  int color;
-/// テキスト（type=textの場合のみ使用）
-@override final  String? text;
 
 /// Create a copy of Shape
 /// with the given fields replaced by the non-null parameter values.
@@ -251,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Shape&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.color, color) || other.color == color)&&(identical(other.text, text) || other.text == text));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Shape&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.x, x) || other.x == x)&&(identical(other.y, y) || other.y == y)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.color, color) || other.color == color));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,type,x,y,width,height,color,text);
+int get hashCode => Object.hash(runtimeType,id,type,x,y,width,height,color);
 
 @override
 String toString() {
-  return 'Shape(id: $id, type: $type, x: $x, y: $y, width: $width, height: $height, color: $color, text: $text)';
+  return 'Shape(id: $id, type: $type, x: $x, y: $y, width: $width, height: $height, color: $color)';
 }
 
 
@@ -271,7 +267,7 @@ abstract mixin class _$ShapeCopyWith<$Res> implements $ShapeCopyWith<$Res> {
   factory _$ShapeCopyWith(_Shape value, $Res Function(_Shape) _then) = __$ShapeCopyWithImpl;
 @override @useResult
 $Res call({
- String id, ShapeType type, double x, double y, double width, double height, int color, String? text
+ String id, ShapeType type, double x, double y, double width, double height, int color
 });
 
 
@@ -288,7 +284,7 @@ class __$ShapeCopyWithImpl<$Res>
 
 /// Create a copy of Shape
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? x = null,Object? y = null,Object? width = null,Object? height = null,Object? color = null,Object? text = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = null,Object? x = null,Object? y = null,Object? width = null,Object? height = null,Object? color = null,}) {
   return _then(_Shape(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -297,8 +293,7 @@ as double,y: null == y ? _self.y : y // ignore: cast_nullable_to_non_nullable
 as double,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
 as double,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
 as double,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
-as int,text: freezed == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
-as String?,
+as int,
   ));
 }
 

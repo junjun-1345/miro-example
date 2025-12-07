@@ -6,7 +6,7 @@ part of 'board_view_model.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$clientIdHash() => r'd0e9f9dacc6fd8f565c3a5e70d63d086c10969f9';
+String _$clientIdHash() => r'3175dc61529896be6972e9356c14f638a4bb650e';
 
 /// クライアントIDを生成するProvider
 ///
@@ -25,7 +25,7 @@ final clientIdProvider = AutoDisposeProvider<String>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ClientIdRef = AutoDisposeProviderRef<String>;
-String _$serverUrlHash() => r'2f008efd1cb21f511c129632f024145681a8dfab';
+String _$serverUrlHash() => r'6a448e42c6ec8836391ef087e3c80ede54f1004c';
 
 /// WebSocketのURLを提供するProvider
 ///
@@ -44,7 +44,7 @@ final serverUrlProvider = AutoDisposeProvider<String>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ServerUrlRef = AutoDisposeProviderRef<String>;
-String _$boardRepositoryHash() => r'f3fef47f66e7b9da4bf115b29e2e471a220b9f7b';
+String _$boardRepositoryHash() => r'8ccb9f716be1c560ccdbaf8e7769fb981833dd7c';
 
 /// BoardRepositoryのProvider
 ///
@@ -63,7 +63,7 @@ final boardRepositoryProvider = AutoDisposeProvider<BoardRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef BoardRepositoryRef = AutoDisposeProviderRef<BoardRepository>;
-String _$connectionStateHash() => r'bc8ead49b32e1bf9d2c22ac5918874e9d4072ccf';
+String _$connectionStateHash() => r'0ca4a82b2bab002a5481d193b7f2a0951cd58bad';
 
 /// 接続状態を監視するProvider
 ///

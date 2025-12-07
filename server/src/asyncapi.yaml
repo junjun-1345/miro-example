@@ -126,7 +126,8 @@ components:
           type: string
           enum:
             - rectangle
-            - circle
+            - ellipse
+            - triangle
           description: 図形タイプ
           example: rectangle
         x:

@@ -48,10 +48,14 @@ function shouldOverwrite(
  * @param op - 適用する操作
  */
 export function applyOperation(state: CRDTState, op: Operation): void {
-  const existing = state.shapes[op.shape.id];
-
   switch (op.type) {
     case "upsert": {
+      // upsert操作にはshapeが必須
+      if (!op.shape) {
+        console.error("upsert operation requires shape");
+        return;
+      }
+      const existing = state.shapes[op.shape.id];
       // 既存エントリがない、または新しい操作が優先される場合に更新
       if (
         !existing ||
@@ -71,6 +75,13 @@ export function applyOperation(state: CRDTState, op: Operation): void {
       break;
     }
     case "delete": {
+      // delete操作にはshapeIdが必須
+      const shapeId = op.shapeId || op.shape?.id;
+      if (!shapeId) {
+        console.error("delete operation requires shapeId or shape.id");
+        return;
+      }
+      const existing = state.shapes[shapeId];
       // 既存エントリがあり、新しい操作が優先される場合に削除フラグを立てる
       if (
         existing &&
@@ -81,7 +92,7 @@ export function applyOperation(state: CRDTState, op: Operation): void {
           existing.shape.clientId
         )
       ) {
-        state.shapes[op.shape.id] = {
+        state.shapes[shapeId] = {
           ...existing,
           timestamp: op.timestamp,
           deleted: true,

@@ -73,7 +73,10 @@ describe("Hub", () => {
 
     const syncMsg: SyncMessage = JSON.parse(ws.sentMessages[0]);
     expect(syncMsg.type).toBe("sync");
-    expect(syncMsg.state?.shapes["shape-1"]).toBeDefined();
+    // state は ShapeEntry[] 配列形式
+    expect(syncMsg.state).toBeInstanceOf(Array);
+    const entry = syncMsg.state?.find((e) => e.shape.id === "shape-1");
+    expect(entry).toBeDefined();
   });
 
   it("クライアント数を正しくカウントする", async () => {
@@ -120,7 +123,7 @@ describe("Hub", () => {
       clientId: "client-1",
     };
 
-    const message: SyncMessage = { type: "operation", op };
+    const message: SyncMessage = { type: "operation", operation: op };
     await hub.onMessage(ws1, JSON.stringify(message));
 
     // 送信元には送らない
@@ -132,7 +135,7 @@ describe("Hub", () => {
 
     const received: SyncMessage = JSON.parse(ws2.sentMessages[0]);
     expect(received.type).toBe("operation");
-    expect(received.op?.shape.id).toBe("shape-1");
+    expect(received.operation?.shape?.id).toBe("shape-1");
   });
 
   it("リポジトリに操作が適用される", async () => {
@@ -149,7 +152,7 @@ describe("Hub", () => {
       clientId: "client-1",
     };
 
-    const message: SyncMessage = { type: "operation", op };
+    const message: SyncMessage = { type: "operation", operation: op };
     await hub.onMessage(ws, JSON.stringify(message));
 
     const state = await repo.getState();
@@ -199,6 +202,9 @@ describe("Hub", () => {
 
     const syncMsg1: SyncMessage = JSON.parse(ws1.sentMessages[0]);
     expect(syncMsg1.type).toBe("sync");
-    expect(syncMsg1.state?.shapes["shape-1"]).toBeDefined();
+    // state は ShapeEntry[] 配列形式
+    expect(syncMsg1.state).toBeInstanceOf(Array);
+    const entry = syncMsg1.state?.find((e) => e.shape.id === "shape-1");
+    expect(entry).toBeDefined();
   });
 });

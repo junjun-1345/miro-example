@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,20 +15,20 @@ part 'board_view_model.g.dart';
 
 /// クライアントIDを生成するProvider
 @riverpod
-String clientId(ClientIdRef ref) {
+String clientId(Ref ref) {
   return const Uuid().v4();
 }
 
 /// WebSocketのURLを提供するProvider
 @riverpod
-String serverUrl(ServerUrlRef ref) {
+String serverUrl(Ref ref) {
   // ローカル開発用のデフォルトURL
   return 'ws://localhost:8080/ws';
 }
 
 /// BoardRepositoryのProvider
 @riverpod
-BoardRepository boardRepository(BoardRepositoryRef ref) {
+BoardRepository boardRepository(Ref ref) {
   final serverUrl = ref.watch(serverUrlProvider);
   final repository = WebSocketBoardRepository(serverUrl: serverUrl);
 
@@ -186,7 +187,7 @@ class BoardNotifier extends _$BoardNotifier {
 
 /// 接続状態を監視するProvider
 @riverpod
-Stream<bool> connectionState(ConnectionStateRef ref) {
+Stream<bool> connectionState(Ref ref) {
   final repository = ref.watch(boardRepositoryProvider);
   return repository.connectionState;
 }

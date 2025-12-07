@@ -34,7 +34,7 @@ const HealthResponseSchema = z
 const ShapeSchema = z
   .object({
     id: z.string().openapi({ example: "shape-123" }),
-    type: z.enum(["rectangle", "circle"]).openapi({ example: "rectangle" }),
+    type: z.enum(["rectangle", "ellipse", "triangle"]).openapi({ example: "rectangle" }),
     x: z.number().openapi({ example: 100 }),
     y: z.number().openapi({ example: 100 }),
     width: z.number().openapi({ example: 50 }),
