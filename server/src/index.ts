@@ -5,8 +5,10 @@
 
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
-import { type ClientData, Hub } from "./websocket";
-import { MemoryRepository } from "./repository";
+import { cors } from "hono/cors";
+import type { ServerWebSocket } from "bun";
+import { type ClientData, Hub } from "./websocket/index";
+import { MemoryRepository } from "./repository/index";
 
 /** サーバー設定 */
 const PORT = Number(process.env.PORT) || 8080;
@@ -17,6 +19,9 @@ const hub = new Hub(repository);
 
 /** OpenAPI設定 */
 const app = new OpenAPIHono();
+
+// CORSを有効化
+app.use("*", cors());
 
 /** スキーマ定義 */
 const HealthResponseSchema = z
@@ -211,43 +216,45 @@ app.get("/", (c) => {
   `);
 });
 
+console.log(`🚀 Server starting on http://localhost:${PORT}`);
+console.log(`   Swagger UI: http://localhost:${PORT}/swagger`);
+console.log(`   AsyncAPI UI: http://localhost:${PORT}/asyncapi`);
+console.log(`   WebSocket: ws://localhost:${PORT}/ws`);
+
 /** サーバー起動（Bun.serve） */
 const server = Bun.serve<ClientData>({
   port: PORT,
-  fetch: app.fetch,
+  fetch(req, server) {
+    const url = new URL(req.url);
+
+    // WebSocketアップグレード
+    if (url.pathname === "/ws") {
+      const clientId = url.searchParams.get("clientId") || crypto.randomUUID();
+      const success = server.upgrade(req, {
+        data: { clientId },
+      });
+      if (success) {
+        return undefined;
+      }
+      return new Response("WebSocket upgrade failed", { status: 400 });
+    }
+
+    // HonoでHTTPリクエストを処理
+    return app.fetch(req);
+  },
   websocket: {
-    async open(ws) {
+    open(ws: ServerWebSocket<ClientData>) {
       const clientId = ws.data.clientId;
-      console.log(`Client connected: ${clientId}`);
-      await hub.onOpen(ws, clientId);
+      hub.onOpen(ws, clientId);
+      console.log(`Client connected: ${clientId} (total: ${hub.getClientCount()})`);
     },
-    async message(ws, message) {
-      await hub.onMessage(ws, message);
+    message(ws: ServerWebSocket<ClientData>, message) {
+      hub.onMessage(ws, message);
     },
-    close(ws) {
-      const clientId = ws.data.clientId;
-      console.log(`Client disconnected: ${clientId}`);
+    close(ws: ServerWebSocket<ClientData>) {
+      const clientId = ws.data?.clientId;
       hub.onClose(ws);
+      console.log(`Client disconnected: ${clientId} (total: ${hub.getClientCount()})`);
     },
   },
 });
-
-// WebSocketアップグレード用のミドルウェア
-app.get("/ws", (c) => {
-  const clientId =
-    c.req.query("clientId") || crypto.randomUUID();
-
-  const success = server.upgrade(c.req.raw, {
-    data: { clientId },
-  });
-
-  if (success) {
-    return new Response(null, { status: 101 });
-  }
-  return c.text("WebSocket upgrade failed", 400);
-});
-
-console.log(`Server running on http://localhost:${server.port}`);
-console.log(`Swagger UI: http://localhost:${server.port}/swagger`);
-console.log(`AsyncAPI UI: http://localhost:${server.port}/asyncapi`);
-console.log(`WebSocket endpoint: ws://localhost:${server.port}/ws`);
