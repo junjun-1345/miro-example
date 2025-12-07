@@ -10,7 +10,7 @@ Miroライクなリアルタイム共同編集ボードのMVP。
 
 | レイヤー | 技術 |
 |---------|------|
-| Backend | Go + gorilla/websocket |
+| Backend | **Hono + Bun** |
 | Frontend | Flutter Web |
 | 通信 | WebSocket |
 | 同期方式 | **CRDT (LWW-Element-Set)** |
@@ -70,48 +70,48 @@ lookup(element):
 
 ### Shape（図形）
 
-```go
-type Shape struct {
-    ID        string  `json:"id"`
-    Type      string  `json:"type"`      // "rectangle", "circle"
-    X         float64 `json:"x"`
-    Y         float64 `json:"y"`
-    Width     float64 `json:"width"`
-    Height    float64 `json:"height"`
-    Color     string  `json:"color"`
-    Timestamp int64   `json:"timestamp"` // LWW用のタイムスタンプ
-    ClientID  string  `json:"clientId"`  // 競合時のタイブレーカー
+```typescript
+interface Shape {
+  id: string;
+  type: "rectangle" | "circle";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color: string;
+  timestamp: number;  // LWW用のタイムスタンプ
+  clientId: string;   // 競合時のタイブレーカー
 }
 ```
 
 ### CRDT State
 
-```go
-type CRDTState struct {
-    Shapes map[string]ShapeEntry `json:"shapes"` // ID -> Entry
+```typescript
+interface ShapeEntry {
+  shape: Shape;
+  timestamp: number;
+  deleted: boolean;
 }
 
-type ShapeEntry struct {
-    Shape     Shape `json:"shape"`
-    Timestamp int64 `json:"timestamp"`
-    Deleted   bool  `json:"deleted"`
+interface CRDTState {
+  shapes: Record<string, ShapeEntry>;  // ID -> Entry
 }
 ```
 
 ### WebSocketメッセージ
 
-```go
-type Operation struct {
-    Type      string `json:"type"`      // "upsert", "delete"
-    Shape     Shape  `json:"shape"`
-    Timestamp int64  `json:"timestamp"`
-    ClientID  string `json:"clientId"`
+```typescript
+interface Operation {
+  type: "upsert" | "delete";
+  shape: Shape;
+  timestamp: number;
+  clientId: string;
 }
 
-type SyncMessage struct {
-    Type  string    `json:"type"` // "sync", "operation"
-    State CRDTState `json:"state,omitempty"`
-    Op    Operation `json:"op,omitempty"`
+interface SyncMessage {
+  type: "sync" | "operation";
+  state?: CRDTState;  // type=sync の場合
+  op?: Operation;     // type=operation の場合
 }
 ```
 
@@ -122,146 +122,113 @@ type SyncMessage struct {
 
 ### インターフェース定義
 
-```go
-// repository/repository.go
-type StateRepository interface {
-    // 状態の取得
-    GetState(ctx context.Context) (*CRDTState, error)
+```typescript
+// src/repository/repository.ts
+interface StateRepository {
+  // 状態の取得
+  getState(): Promise<CRDTState>;
 
-    // 操作の適用（遅延挿入ポイント）
-    ApplyOperation(ctx context.Context, op Operation) error
+  // 操作の適用（遅延挿入ポイント）
+  applyOperation(op: Operation): Promise<void>;
 
-    // 状態のマージ
-    MergeState(ctx context.Context, state CRDTState) error
+  // 状態のマージ
+  mergeState(state: CRDTState): Promise<void>;
 }
 ```
 
 ### インメモリ実装（MVP）
 
-```go
-// repository/memory.go
-type MemoryRepository struct {
-    state *CRDTState
-    mu    sync.RWMutex
-    delay time.Duration // テスト用遅延
-}
+```typescript
+// src/repository/memory.ts
+class MemoryRepository implements StateRepository {
+  private state: CRDTState = { shapes: {} };
+  private delay: number;  // テスト用遅延（ms）
 
-func NewMemoryRepository(delay time.Duration) *MemoryRepository {
-    return &MemoryRepository{
-        state: NewCRDTState(),
-        delay: delay,
-    }
-}
+  constructor(delay = 0) {
+    this.delay = delay;
+  }
 
-func (r *MemoryRepository) ApplyOperation(ctx context.Context, op Operation) error {
+  async applyOperation(op: Operation): Promise<void> {
     // 遅延シミュレーション（将来のDB書き込みを想定）
-    if r.delay > 0 {
-        select {
-        case <-time.After(r.delay):
-        case <-ctx.Done():
-            return ctx.Err()
-        }
+    if (this.delay > 0) {
+      await new Promise(resolve => setTimeout(resolve, this.delay));
     }
 
-    r.mu.Lock()
-    defer r.mu.Unlock()
+    applyToCRDTState(this.state, op);
+  }
 
-    r.state.Apply(op)
-    return nil
-}
-
-func (r *MemoryRepository) GetState(ctx context.Context) (*CRDTState, error) {
-    if r.delay > 0 {
-        select {
-        case <-time.After(r.delay):
-        case <-ctx.Done():
-            return nil, ctx.Err()
-        }
+  async getState(): Promise<CRDTState> {
+    if (this.delay > 0) {
+      await new Promise(resolve => setTimeout(resolve, this.delay));
     }
 
-    r.mu.RLock()
-    defer r.mu.RUnlock()
-
-    return r.state.Clone(), nil
-}
-```
-
-### 将来のDB実装（例）
-
-```go
-// repository/postgres.go （将来実装）
-type PostgresRepository struct {
-    db *sql.DB
-}
-
-func (r *PostgresRepository) ApplyOperation(ctx context.Context, op Operation) error {
-    // 実際のDB書き込み
-    _, err := r.db.ExecContext(ctx,
-        "INSERT INTO operations (type, shape_id, data, timestamp) VALUES ($1, $2, $3, $4)",
-        op.Type, op.Shape.ID, op.Shape, op.Timestamp)
-    return err
+    return structuredClone(this.state);
+  }
 }
 ```
 
 ### 使用例
 
-```go
-// main.go
-func main() {
-    // 開発時: 遅延なし
-    repo := repository.NewMemoryRepository(0)
+```typescript
+// src/index.ts
+// 開発時: 遅延なし
+const repo = new MemoryRepository(0);
 
-    // テスト時: 100ms遅延でDB書き込みをシミュレート
-    // repo := repository.NewMemoryRepository(100 * time.Millisecond)
+// テスト時: 100ms遅延でDB書き込みをシミュレート
+// const repo = new MemoryRepository(100);
 
-    // 本番時: PostgreSQL
-    // repo := repository.NewPostgresRepository(db)
+// 本番時: PostgreSQL
+// const repo = new PostgresRepository(db);
 
-    hub := NewHub(repo)
-    // ...
-}
+const hub = new Hub(repo);
 ```
 
 ## CRDT操作
 
 ### Merge（マージ）
 
-```go
-func (s *CRDTState) Merge(other CRDTState) {
-    for id, entry := range other.Shapes {
-        existing, exists := s.Shapes[id]
-        if !exists || entry.Timestamp > existing.Timestamp ||
-           (entry.Timestamp == existing.Timestamp &&
-            entry.Shape.ClientID > existing.Shape.ClientID) {
-            s.Shapes[id] = entry
-        }
+```typescript
+function mergeCRDTState(state: CRDTState, other: CRDTState): void {
+  for (const [id, entry] of Object.entries(other.shapes)) {
+    const existing = state.shapes[id];
+    if (!existing || entry.timestamp > existing.timestamp ||
+        (entry.timestamp === existing.timestamp &&
+         entry.shape.clientId > existing.shape.clientId)) {
+      state.shapes[id] = entry;
     }
+  }
 }
 ```
 
 ### Apply（操作適用）
 
-```go
-func (s *CRDTState) Apply(op Operation) {
-    switch op.Type {
-    case "upsert":
-        existing, exists := s.Shapes[op.Shape.ID]
-        if !exists || op.Timestamp > existing.Timestamp {
-            s.Shapes[op.Shape.ID] = ShapeEntry{
-                Shape:     op.Shape,
-                Timestamp: op.Timestamp,
-                Deleted:   false,
-            }
-        }
-    case "delete":
-        if existing, exists := s.Shapes[op.Shape.ID]; exists {
-            if op.Timestamp > existing.Timestamp {
-                existing.Deleted = true
-                existing.Timestamp = op.Timestamp
-                s.Shapes[op.Shape.ID] = existing
-            }
-        }
+```typescript
+function applyToCRDTState(state: CRDTState, op: Operation): void {
+  switch (op.type) {
+    case "upsert": {
+      const existing = state.shapes[op.shape.id];
+      if (!existing || op.timestamp > existing.timestamp ||
+          (op.timestamp === existing.timestamp && op.clientId > existing.shape.clientId)) {
+        state.shapes[op.shape.id] = {
+          shape: op.shape,
+          timestamp: op.timestamp,
+          deleted: false,
+        };
+      }
+      break;
     }
+    case "delete": {
+      const existing = state.shapes[op.shape.id];
+      if (existing && op.timestamp > existing.timestamp) {
+        state.shapes[op.shape.id] = {
+          ...existing,
+          timestamp: op.timestamp,
+          deleted: true,
+        };
+      }
+      break;
+    }
+  }
 }
 ```
 
@@ -295,32 +262,37 @@ Client A                        Server                      Client B
 
 ```text
 miro-example/
-├── server/                 # Go バックエンド
-│   ├── main.go
-│   ├── crdt/
-│   │   └── state.go       # CRDT実装
-│   ├── repository/
-│   │   ├── repository.go  # インターフェース
-│   │   └── memory.go      # インメモリ実装
-│   ├── hub.go             # WebSocket接続管理
-│   ├── client.go          # クライアント接続
-│   └── go.mod
-├── client/                 # Flutter フロントエンド
+├── server/                      # Hono + Bun バックエンド
+│   ├── src/
+│   │   ├── index.ts            # エントリーポイント
+│   │   ├── domain/
+│   │   │   ├── types.ts        # Shape, Operation等の型定義
+│   │   │   └── crdt.ts         # CRDT操作
+│   │   ├── repository/
+│   │   │   ├── repository.ts   # インターフェース
+│   │   │   └── memory.ts       # インメモリ実装
+│   │   └── websocket/
+│   │       └── hub.ts          # WebSocket接続管理
+│   ├── package.json
+│   └── tsconfig.json
+├── client/                      # Flutter フロントエンド
 │   ├── lib/
 │   │   ├── main.dart
-│   │   ├── crdt/          # CRDT実装
-│   │   │   └── state.dart
-│   │   ├── models/
-│   │   │   └── shape.dart
-│   │   ├── repositories/  # Repository（ローカル状態管理）
+│   │   ├── domain/
+│   │   │   ├── shape.dart
+│   │   │   └── crdt.dart
+│   │   ├── repository/
 │   │   │   └── board_repository.dart
-│   │   ├── services/
+│   │   ├── service/
 │   │   │   └── websocket_service.dart
-│   │   └── widgets/
-│   │       ├── canvas_widget.dart
-│   │       └── shape_painter.dart
+│   │   └── presentation/
+│   │       ├── board_page.dart
+│   │       └── widgets/
+│   │           ├── canvas_widget.dart
+│   │           └── shape_painter.dart
 │   └── pubspec.yaml
 ├── DESIGN.md
+├── CLAUDE.md
 └── README.md
 ```
 
