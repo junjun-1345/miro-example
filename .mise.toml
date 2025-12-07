@@ -2,6 +2,27 @@
 flutter = "3.38.1-stable"
 bun = "latest"
 
+[tasks.setup]
+description = "依存関係のインストールとコード生成"
+run = """
+echo "📦 依存関係をインストール中..."
+cd server && bun install
+cd ../client && flutter pub get
+echo "🔧 コード生成中..."
+cd client && dart run build_runner build --delete-conflicting-outputs
+echo "✅ セットアップ完了"
+"""
+
+[tasks.install]
+description = "依存関係のインストールのみ"
+run = """
+echo "📦 サーバーの依存関係をインストール中..."
+cd server && bun install
+echo "📦 クライアントの依存関係をインストール中..."
+cd ../client && flutter pub get
+echo "✅ インストール完了"
+"""
+
 [tasks.server]
 description = "サーバーを起動"
 run = "cd server && bun run src/index.ts"
@@ -24,11 +45,11 @@ depends = ["server", "client"]
 
 [tasks.build]
 description = "freezedコード生成"
-run = "cd client && flutter pub run build_runner build --delete-conflicting-outputs"
+run = "cd client && dart run build_runner build --delete-conflicting-outputs"
 
 [tasks.watch]
 description = "freezedコード生成（監視モード）"
-run = "cd client && flutter pub run build_runner watch --delete-conflicting-outputs"
+run = "cd client && dart run build_runner watch --delete-conflicting-outputs"
 
 [tasks.web-build]
 description = "Flutter Webをビルド"

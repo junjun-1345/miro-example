@@ -48,12 +48,12 @@ class Toolbar extends StatelessWidget {
             onPressed: () => onToolSelected(ShapeType.ellipse),
           ),
           const SizedBox(width: 8),
-          // テキスト
+          // 三角形
           _ToolButton(
-            icon: Icons.text_fields,
-            label: 'Text',
-            isSelected: selectedTool == ShapeType.text,
-            onPressed: () => onToolSelected(ShapeType.text),
+            icon: Icons.change_history,
+            label: 'Triangle',
+            isSelected: selectedTool == ShapeType.triangle,
+            onPressed: () => onToolSelected(ShapeType.triangle),
           ),
         ],
       ),

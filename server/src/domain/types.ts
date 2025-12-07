@@ -4,7 +4,7 @@
  */
 
 /** 図形の種類 */
-export type ShapeType = "rectangle" | "circle";
+export type ShapeType = "rectangle" | "ellipse" | "triangle";
 
 /**
  * 図形データ
@@ -63,8 +63,10 @@ export type OperationType = "upsert" | "delete";
 export interface Operation {
   /** 操作の種類 */
   type: OperationType;
-  /** 対象の図形 */
-  shape: Shape;
+  /** 対象の図形ID (削除操作時に使用) */
+  shapeId?: string;
+  /** 対象の図形 (upsert操作時に使用) */
+  shape?: Shape;
   /** 操作のタイムスタンプ */
   timestamp: number;
   /** 操作を行ったクライアントID */

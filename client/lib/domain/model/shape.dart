@@ -9,8 +9,8 @@ enum ShapeType {
   rectangle,
   @JsonValue('ellipse')
   ellipse,
-  @JsonValue('text')
-  text,
+  @JsonValue('triangle')
+  triangle,
 }
 
 /// キャンバス上の図形を表すモデル
@@ -38,8 +38,6 @@ sealed class Shape with _$Shape {
     /// 塗りつぶし色（ARGB形式）
     required int color,
 
-    /// テキスト（type=textの場合のみ使用）
-    String? text,
   }) = _Shape;
 
   factory Shape.fromJson(Map<String, dynamic> json) => _$ShapeFromJson(json);

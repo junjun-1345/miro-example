@@ -14,7 +14,6 @@ _Shape _$ShapeFromJson(Map<String, dynamic> json) => _Shape(
   width: (json['width'] as num).toDouble(),
   height: (json['height'] as num).toDouble(),
   color: (json['color'] as num).toInt(),
-  text: json['text'] as String?,
 );
 
 Map<String, dynamic> _$ShapeToJson(_Shape instance) => <String, dynamic>{
@@ -25,13 +24,12 @@ Map<String, dynamic> _$ShapeToJson(_Shape instance) => <String, dynamic>{
   'width': instance.width,
   'height': instance.height,
   'color': instance.color,
-  'text': instance.text,
 };
 
 const _$ShapeTypeEnumMap = {
   ShapeType.rectangle: 'rectangle',
   ShapeType.ellipse: 'ellipse',
-  ShapeType.text: 'text',
+  ShapeType.triangle: 'triangle',
 };
 
 _ShapeEntry _$ShapeEntryFromJson(Map<String, dynamic> json) => _ShapeEntry(
