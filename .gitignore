@@ -1,13 +1,13 @@
-# テックブログ用メモ（個人用）
+# 個人用メモ
 notes.md
+go-guide.md
 
-# Go
-server/bin/
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# Node.js / Bun
+node_modules/
+dist/
+*.log
+.env
+.env.local
 
 # Flutter
 client/.dart_tool/

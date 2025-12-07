@@ -8,7 +8,7 @@ Miroライクなリアルタイム共同編集ボードのMVP。CRDTを使用し
 
 ## Tech Stack
 
-- **Backend**: Go + gorilla/websocket
+- **Backend**: Hono + Bun
 - **Frontend**: Flutter Web
 - **Sync**: CRDT (LWW-Element-Set)
 - **Persistence**: In-memory (Repository pattern for future DB)
@@ -16,24 +16,24 @@ Miroライクなリアルタイム共同編集ボードのMVP。CRDTを使用し
 ## Architecture
 
 モノレポ構成:
-- `server/` - Go バックエンド
+- `server/` - Hono + Bun バックエンド
 - `client/` - Flutter フロントエンド
 
 各クライアントとサーバーがCRDT状態を持ち、WebSocketでOperationをブロードキャスト。全ノードで状態が収束する。
 
 ## Commands
 
-### Backend (Go)
+### Backend (Hono + Bun)
 
 ```bash
 # Run server
-cd server && go run .
+cd server && bun run dev
 
 # Run tests
-cd server && go test ./...
+cd server && bun test
 
 # Run single test
-cd server && go test -run TestFunctionName ./...
+cd server && bun test --grep "test name"
 ```
 
 ### Frontend (Flutter)
