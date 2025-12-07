@@ -1,0 +1,185 @@
+asyncapi: '2.6.0'
+info:
+  title: Miro Example WebSocket API
+  version: '1.0.0'
+  description: |
+    リアルタイム協調編集ボードのWebSocket API。
+    CRDT（LWW-Element-Set）を使用した競合解決により、複数クライアント間での同時編集を実現。
+
+servers:
+  development:
+    url: ws://localhost:8080/ws
+    protocol: ws
+    description: ローカル開発サーバー
+
+channels:
+  /ws:
+    description: |
+      メインのWebSocketチャネル。
+      接続時にclientIdクエリパラメータを指定可能（省略時は自動生成）。
+      例: ws://localhost:8080/ws?clientId=my-client-123
+    subscribe:
+      summary: サーバーからクライアントへのメッセージ
+      description: |
+        - sync: 接続時に現在の状態を受信
+        - operation: 他クライアントの操作を受信
+      message:
+        oneOf:
+          - $ref: '#/components/messages/SyncMessage'
+          - $ref: '#/components/messages/OperationMessage'
+    publish:
+      summary: クライアントからサーバーへのメッセージ
+      description: 図形の追加・更新・削除操作を送信
+      message:
+        $ref: '#/components/messages/OperationMessage'
+
+components:
+  messages:
+    SyncMessage:
+      name: SyncMessage
+      title: 状態同期メッセージ
+      summary: 接続時にサーバーから送信される現在の状態
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SyncMessagePayload'
+
+    OperationMessage:
+      name: OperationMessage
+      title: 操作メッセージ
+      summary: 図形の追加・更新・削除操作
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/OperationMessagePayload'
+
+  schemas:
+    SyncMessagePayload:
+      type: object
+      required:
+        - type
+        - state
+      properties:
+        type:
+          type: string
+          const: sync
+          description: メッセージタイプ
+        state:
+          $ref: '#/components/schemas/CRDTState'
+
+    OperationMessagePayload:
+      type: object
+      required:
+        - type
+        - op
+      properties:
+        type:
+          type: string
+          const: operation
+          description: メッセージタイプ
+        op:
+          $ref: '#/components/schemas/Operation'
+
+    CRDTState:
+      type: object
+      description: CRDT状態（全図形のマップ）
+      properties:
+        shapes:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ShapeEntry'
+
+    ShapeEntry:
+      type: object
+      required:
+        - shape
+        - timestamp
+        - deleted
+      properties:
+        shape:
+          $ref: '#/components/schemas/Shape'
+        timestamp:
+          type: number
+          description: 最終更新タイムスタンプ
+          example: 1699999999999
+        deleted:
+          type: boolean
+          description: 削除フラグ
+          example: false
+
+    Shape:
+      type: object
+      required:
+        - id
+        - type
+        - x
+        - y
+        - width
+        - height
+        - color
+        - timestamp
+        - clientId
+      properties:
+        id:
+          type: string
+          description: 図形の一意識別子
+          example: shape-123
+        type:
+          type: string
+          enum:
+            - rectangle
+            - circle
+          description: 図形タイプ
+          example: rectangle
+        x:
+          type: number
+          description: X座標
+          example: 100
+        y:
+          type: number
+          description: Y座標
+          example: 100
+        width:
+          type: number
+          description: 幅
+          example: 50
+        height:
+          type: number
+          description: 高さ
+          example: 50
+        color:
+          type: string
+          description: 色（HEX形式）
+          example: '#ff0000'
+        timestamp:
+          type: number
+          description: 作成/更新タイムスタンプ
+          example: 1699999999999
+        clientId:
+          type: string
+          description: 作成/更新したクライアントID
+          example: client-abc
+
+    Operation:
+      type: object
+      required:
+        - type
+        - shape
+        - timestamp
+        - clientId
+      properties:
+        type:
+          type: string
+          enum:
+            - upsert
+            - delete
+          description: 操作タイプ
+          example: upsert
+        shape:
+          $ref: '#/components/schemas/Shape'
+        timestamp:
+          type: number
+          description: 操作タイムスタンプ
+          example: 1699999999999
+        clientId:
+          type: string
+          description: 操作を実行したクライアントID
+          example: client-abc
