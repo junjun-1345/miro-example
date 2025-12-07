@@ -1,0 +1,57 @@
+[tools]
+flutter = "3.38.1-stable"
+bun = "latest"
+
+[tasks.server]
+description = "サーバーを起動"
+run = "cd server && bun run src/index.ts"
+
+[tasks.client]
+description = "Flutterクライアントを起動 (macOS)"
+run = "cd client && flutter run -d macos"
+
+[tasks.client2]
+description = "Flutterクライアント2を起動 (macOS)"
+run = "cd client && flutter run -d macos"
+
+[tasks.client3]
+description = "Flutterクライアント3を起動 (macOS)"
+run = "cd client && flutter run -d macos"
+
+[tasks.dev]
+description = "サーバー + クライアント1つを起動"
+depends = ["server", "client"]
+
+[tasks.build]
+description = "freezedコード生成"
+run = "cd client && flutter pub run build_runner build --delete-conflicting-outputs"
+
+[tasks.watch]
+description = "freezedコード生成（監視モード）"
+run = "cd client && flutter pub run build_runner watch --delete-conflicting-outputs"
+
+[tasks.web-build]
+description = "Flutter Webをビルド"
+run = "cd client && flutter build web"
+
+[tasks.kill]
+description = "全ての開発プロセスを停止"
+run = """
+echo "🛑 開発プロセスを停止中..."
+pkill -f "bun run src/index.ts" 2>/dev/null && echo "  ✓ サーバーを停止" || echo "  - サーバーは起動していません"
+pkill -f "flutter run" 2>/dev/null && echo "  ✓ Flutterを停止" || echo "  - Flutterは起動していません"
+pkill -f "miro_example" 2>/dev/null && echo "  ✓ macOSアプリを停止" || echo "  - macOSアプリは起動していません"
+echo "✅ 完了"
+"""
+
+[tasks.clients]
+description = "複数クライアントの起動方法"
+run = """
+echo "=== 複数クライアントの起動方法 ==="
+echo "1. ターミナル1: mise run server"
+echo "2. ターミナル2: mise run client"
+echo "3. ターミナル3: mise run client2"
+echo "4. ターミナル4: mise run client3"
+echo ""
+echo "全て停止: mise run kill"
+"""

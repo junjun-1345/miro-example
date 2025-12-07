@@ -39,10 +39,12 @@ export class Hub {
     this.clients.set(clientId, ws);
 
     // 現在の状態を新しいクライアントに送信
-    const state = await this.repository.getState();
+    const crdtState = await this.repository.getState();
+    // CRDTState を ShapeEntry[] に変換（クライアントの期待する形式）
+    const entries = Object.values(crdtState.shapes);
     const syncMessage: SyncMessage = {
       type: "sync",
-      state,
+      state: entries,
     };
 
     ws.send(JSON.stringify(syncMessage));
@@ -67,8 +69,8 @@ export class Hub {
       return;
     }
 
-    if (syncMessage.type === "operation" && syncMessage.op) {
-      await this.handleOperation(ws, syncMessage.op);
+    if (syncMessage.type === "operation" && syncMessage.operation) {
+      await this.handleOperation(ws, syncMessage.operation);
     }
   }
 
@@ -87,7 +89,7 @@ export class Hub {
     // 他のクライアントにブロードキャスト（送信元以外）
     const message: SyncMessage = {
       type: "operation",
-      op,
+      operation: op,
     };
     const msgStr = JSON.stringify(message);
 
@@ -126,10 +128,11 @@ export class Hub {
    * 全クライアントに状態を同期（再接続時など）
    */
   async broadcastFullState(): Promise<void> {
-    const state = await this.repository.getState();
+    const crdtState = await this.repository.getState();
+    const entries = Object.values(crdtState.shapes);
     const syncMessage: SyncMessage = {
       type: "sync",
-      state,
+      state: entries,
     };
     const msgStr = JSON.stringify(syncMessage);
 

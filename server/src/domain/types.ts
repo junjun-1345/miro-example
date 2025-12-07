@@ -82,7 +82,7 @@ export interface SyncMessage {
   /** メッセージの種類 */
   type: SyncMessageType;
   /** 全状態 (type=sync の場合) */
-  state?: CRDTState;
+  state?: ShapeEntry[];
   /** 操作 (type=operation の場合) */
-  op?: Operation;
+  operation?: Operation;
 }
